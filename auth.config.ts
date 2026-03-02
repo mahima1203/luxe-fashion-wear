@@ -1,26 +1,16 @@
-
-
 import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   pages: {
-    signIn: '/login',
+    signIn: '/login', // Resetting this since we're not enforcing auth right now anyway
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
 
-      if (isOnDashboard) {
-        return isLoggedIn;
-      }
-
-      if (isLoggedIn && nextUrl.pathname === '/login') {
-        return Response.redirect(new URL('/dashboard', nextUrl));
-      }
-
+      // Temporarily bypass all authentication checks
       return true;
     },
   },
 } satisfies Omit<NextAuthConfig, 'providers'>;
-
