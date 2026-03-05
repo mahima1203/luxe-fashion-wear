@@ -226,12 +226,7 @@ export default function HeroBanner() {
                 ))}
             </div>
 
-            {/* Slide Counter */}
-            <div className="absolute top-6 right-6 z-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5">
-                <span className="text-white/90 text-xs sm:text-sm font-mono tracking-wider">
-                    {String(current + 1).padStart(2, '0')} / {String(banners.length).padStart(2, '0')}
-                </span>
-            </div>
+
 
             {/* CSS Keyframes */}
             <style jsx>{`

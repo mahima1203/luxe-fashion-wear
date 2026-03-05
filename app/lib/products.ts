@@ -94,3 +94,22 @@ export async function fetchProducts(category: string, page: number = 1, limit: n
         total: filtered.length,
     };
 }
+
+export async function searchProducts(query: string, limit: number = 5) {
+    // Simulate network delay for search autocomplete
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const q = query.toLowerCase().trim();
+    if (!q) return [];
+
+    const results = allProducts.filter((p) => {
+        return (
+            p.name.toLowerCase().includes(q) ||
+            p.brand.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            p.subcategory.toLowerCase().includes(q)
+        );
+    });
+
+    return results.slice(0, limit);
+}
