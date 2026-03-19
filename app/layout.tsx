@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://next-learn-dashboard.vercel.sh'),
 };
 
+import Providers from './providers';
+
 export default function RootLayout({
   children,
 }: {
@@ -23,7 +25,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={'${inter.className} antialiased'}>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

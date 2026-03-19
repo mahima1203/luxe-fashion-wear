@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import ProductCard from '@/app/ui/fashion/ProductCard';
 import { ProductGridSkeleton } from '@/app/ui/fashion/ProductSkeleton';
 import { fetchProducts, Product } from '@/app/lib/products';
@@ -10,43 +11,40 @@ import FashionFooter from '@/app/ui/fashion/FashionFooter';
 
 export default function ProductListingPage() {
     const { category } = useParams();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [page, setPage] = useState(1);
-    const [loading, setLoading] = useState(true);
-    const [hasMore, setHasMore] = useState(true);
     const observer = useRef<IntersectionObserver | null>(null);
 
-    const loadMoreProducts = useCallback(async () => {
-        if (!hasMore || (loading && page > 1)) return;
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading
+    } = useInfiniteQuery({
+        queryKey: ['products', category],
+        queryFn: ({ pageParam = 1 }) => fetchProducts(category as string, pageParam),
+        getNextPageParam: (lastPage: any, allPages: any[]) => {
+            return lastPage.hasMore ? allPages.length + 1 : undefined;
+        },
+        initialPageParam: 1,
+    });
 
-        setLoading(true);
-        try {
-            const data = await fetchProducts(category as string, page);
-            setProducts((prev) => [...prev, ...data.products]);
-            setHasMore(data.hasMore);
-        } catch (error) {
-            console.error('Error loading products:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [category, page, hasMore, loading]);
-
-    useEffect(() => {
-        loadMoreProducts();
-    }, [page]);
+    const products = data ? data.pages.flatMap((page: any) => page.products as Product[]) : [];
+    
+    // Filter out unique products manually in case of duplicate keys in Strict Mode
+    const uniqueProducts = Array.from(new Map(products.map((p: Product) => [p.id, p])).values()) as Product[];
 
     const lastProductElementRef = useCallback(
         (node: HTMLDivElement) => {
-            if (loading) return;
+            if (isLoading || isFetchingNextPage) return;
             if (observer.current) observer.current.disconnect();
             observer.current = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasMore) {
-                    setPage((prevPage) => prevPage + 1);
+                if (entries[0].isIntersecting && hasNextPage) {
+                    fetchNextPage();
                 }
             });
             if (node) observer.current.observe(node);
         },
-        [loading, hasMore]
+        [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]
     );
 
     return (
@@ -60,8 +58,8 @@ export default function ProductListingPage() {
                 </header>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                    {products.map((product, index) => {
-                        if (products.length === index + 1) {
+                    {uniqueProducts.map((product: Product, index: number) => {
+                        if (uniqueProducts.length === index + 1) {
                             return (
                                 <div ref={lastProductElementRef} key={product.id}>
                                     <ProductCard product={product} />
@@ -73,19 +71,19 @@ export default function ProductListingPage() {
                     })}
                 </div>
 
-                {loading && (
+                {(isLoading || isFetchingNextPage) && (
                     <div className="mt-8">
                         <ProductGridSkeleton count={4} />
                     </div>
                 )}
 
-                {!hasMore && products.length > 0 && (
+                {!hasNextPage && products.length > 0 && (
                     <div className="text-center py-12">
                         <p className="text-gray-500 font-medium">You&apos;ve seen it all! 🎉</p>
                     </div>
                 )}
 
-                {!loading && products.length === 0 && (
+                {!isLoading && products.length === 0 && (
                     <div className="text-center py-24">
                         <p className="text-gray-500 text-lg">No products found for this category.</p>
                     </div>

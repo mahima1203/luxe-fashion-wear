@@ -1,7 +1,8 @@
 'use client';
 
-import Image from 'next/image';
+import { CldImage } from 'next-cloudinary';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Product } from '@/app/lib/products';
 
 interface ProductCardProps {
@@ -10,20 +11,34 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
     const [isWishlisted, setIsWishlisted] = useState(false);
+    const router = useRouter();
+
+    // Authentication disabled per user request
+    const isLoggedIn = true;
+
+    const handleProtectedAction = (action: string, callback?: () => void) => {
+        if (callback) {
+            callback();
+        }
+    };
 
     const toggleWishlist = () => {
-        setIsWishlisted((prev) => !prev);
+        handleProtectedAction('wishlist', () => {
+            setIsWishlisted((prev) => !prev);
+        });
     };
 
     return (
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100">
             {/* Image Container */}
             <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                <Image
+                <CldImage
                     src={product.image}
                     alt={product.name}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    width={400}
+                    height={533}
+                    crop="fill"
+                    className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
 
@@ -74,7 +89,15 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                 {/* Add to Bag overlay */}
                 <div className="absolute inset-x-0 bottom-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                    <button className="w-full bg-gray-900 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-colors duration-300">
+                    <button 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleProtectedAction('bag/cart', () => {
+                                console.log('Added to bag:', product.name);
+                            });
+                        }}
+                        className="w-full bg-gray-900 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-colors duration-300"
+                    >
                         Add to Bag
                     </button>
                 </div>

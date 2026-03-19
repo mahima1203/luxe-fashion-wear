@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { CldImage } from 'next-cloudinary';
 import { useState } from 'react';
 
 const products = [
@@ -11,7 +11,7 @@ const products = [
         price: 4999,
         originalPrice: 7999,
         discount: 38,
-        image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773078709/midi_1_lfnxpz.avif',
         badge: 'Bestseller',
     },
     {
@@ -21,7 +21,7 @@ const products = [
         price: 3499,
         originalPrice: 5999,
         discount: 42,
-        image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773078706/midi_2_ga1xrq.avif',
         badge: 'New',
     },
     {
@@ -31,7 +31,7 @@ const products = [
         price: 12999,
         originalPrice: 18999,
         discount: 32,
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773078728/kurti_1_qbx896.avif',
         badge: null,
     },
     {
@@ -41,7 +41,7 @@ const products = [
         price: 8999,
         originalPrice: 12999,
         discount: 31,
-        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773164248/thsirt_2_uyztdy.avif',
         badge: 'Trending',
     },
     {
@@ -51,7 +51,7 @@ const products = [
         price: 2799,
         originalPrice: 4499,
         discount: 38,
-        image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773078724/kurti_2_sz3a1j.avif',
         badge: null,
     },
     {
@@ -61,7 +61,7 @@ const products = [
         price: 5999,
         originalPrice: 8999,
         discount: 33,
-        image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773164244/shirt_5_hmlgoj.avif',
         badge: 'Bestseller',
     },
     {
@@ -71,7 +71,7 @@ const products = [
         price: 6499,
         originalPrice: 9999,
         discount: 35,
-        image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773164242/jeans_5_zgnlj9.avif',
         badge: 'New',
     },
     {
@@ -81,7 +81,7 @@ const products = [
         price: 9499,
         originalPrice: 14999,
         discount: 37,
-        image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&q=80',
+        image: 'https://res.cloudinary.com/djha7wiuw/image/upload/v1773164254/trouser_2_uoxnls.avif',
         badge: null,
     },
 ];
@@ -128,11 +128,13 @@ export default function TrendingProducts() {
                         >
                             {/* Image Container */}
                             <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                                <Image
+                                <CldImage
                                     src={product.image}
                                     alt={product.name}
-                                    fill
-                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                    width={400}
+                                    height={533}
+                                    crop="fill"
+                                    className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                                 />
 
@@ -140,10 +142,10 @@ export default function TrendingProducts() {
                                 {product.badge && (
                                     <span
                                         className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${product.badge === 'New'
-                                                ? 'bg-emerald-500 text-white'
-                                                : product.badge === 'Bestseller'
-                                                    ? 'bg-amber-500 text-white'
-                                                    : 'bg-rose-500 text-white'
+                                            ? 'bg-emerald-500 text-white'
+                                            : product.badge === 'Bestseller'
+                                                ? 'bg-amber-500 text-white'
+                                                : 'bg-rose-500 text-white'
                                             }`}
                                     >
                                         {product.badge}

@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { CldImage } from 'next-cloudinary';
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getSearchResults } from '@/app/lib/searchActions';
 import type { Product } from '@/app/lib/products';
 
@@ -17,6 +18,12 @@ const navLinks = [
 export default function FashionNavbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+
+    // Authentication disabled per user request
+    const [isLoggedIn, setIsLoggedIn] = useState(true);
+    const router = useRouter();
+
     const searchInputRef = useRef<HTMLInputElement>(null);
     const desktopSearchInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,6 +34,7 @@ export default function FashionNavbar() {
     const [showDropdown, setShowDropdown] = useState(false);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // ... Effects ...
     useEffect(() => {
         if (isSearchOpen && searchInputRef.current) {
             searchInputRef.current.focus();
@@ -44,7 +52,6 @@ export default function FashionNavbar() {
         return () => document.removeEventListener('keydown', handleEsc);
     }, []);
 
-    // Handle Search Input
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value;
         setSearchQuery(query);
@@ -70,10 +77,9 @@ export default function FashionNavbar() {
             } finally {
                 setIsSearching(false);
             }
-        }, 500); // 500ms debounce
+        }, 500);
     };
 
-    // Click outside handler for desktop dropdown
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (desktopSearchInputRef.current && !desktopSearchInputRef.current.contains(event.target as Node)) {
@@ -110,11 +116,13 @@ export default function FashionNavbar() {
                                 }}
                             >
                                 <div className="relative w-12 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                                    <Image
+                                    <CldImage
                                         src={product.image}
                                         alt={product.name}
-                                        fill
-                                        className="object-cover"
+                                        width={48}
+                                        height={64}
+                                        crop="fill"
+                                        className="object-cover w-full h-full"
                                         sizes="48px"
                                     />
                                 </div>
@@ -142,6 +150,10 @@ export default function FashionNavbar() {
                 )}
             </div>
         );
+    };
+
+    const handleProtectedAction = (action: string) => {
+        console.log(`Action allowed: ${action}`);
     };
 
 
@@ -246,21 +258,101 @@ export default function FashionNavbar() {
                                 <span className="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full"></span>
                             </button>
 
+                            {/* Account / Login Dropdown */}
+                            <div
+                                className="relative"
+                                onMouseEnter={() => setShowAccountDropdown(true)}
+                                onMouseLeave={() => setShowAccountDropdown(false)}
+                            >
+                                <button
+                                    className="p-1 text-white hover:text-gray-300 transition-colors relative flex items-center"
+                                    aria-label="Account"
+                                >
+                                    <svg className={`w-6 h-6 ${isLoggedIn ? 'text-green-400' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </button>
+
+                                {/* Dropdown menu */}
+                                <div className={`absolute top-full right-[-80px] sm:right-[-40px] mt-4 w-60 bg-white rounded-md shadow-2xl border border-gray-100 z-50 py-4 px-4 transition-all duration-200 origin-top transform ${showAccountDropdown ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}>
+                                    {/* Caret pointing up */}
+                                    <div className="absolute -top-2 right-[88px] sm:right-[48px] w-4 h-4 bg-white rotate-45 border-l border-t border-gray-100"></div>
+
+                                    {/* Login / Register Button */}
+                                    {!isLoggedIn && (
+                                        <div className="mb-4 relative z-10">
+                                            <button
+                                                onClick={() => { setIsLoggedIn(true); setShowAccountDropdown(false); }}
+                                                className="w-full bg-[#f60046] hover:bg-[#d6003c] text-white font-semibold py-2.5 rounded-full transition-colors text-sm"
+                                            >
+                                                Login/ Register
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col gap-1 relative z-10">
+                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046] group">
+                                            <div className="w-6 h-6 rounded-full border border-gray-400 flex items-center justify-center flex-shrink-0 group-hover:border-[#f60046]">
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                            </div>
+                                            <span className="text-[15px] font-medium">My account</span>
+                                        </Link>
+                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                            <span className="text-[15px] font-medium">Order History</span>
+                                        </Link>
+                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                            <span className="text-[15px] font-medium">My Wishlist</span>
+                                        </Link>
+                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                                            <span className="text-[15px] font-medium">Alerts & Coupon</span>
+                                        </Link>
+                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
+                                            <span className="text-[15px] font-medium">Gift Card</span>
+                                        </Link>
+                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span className="text-[15px] font-medium">LUXE Cash</span>
+                                        </Link>
+                                        {isLoggedIn && (
+                                            <button
+                                                onClick={() => { setIsLoggedIn(false); setShowAccountDropdown(false); }}
+                                                className="flex items-center gap-4 px-2 py-2 mt-2 hover:bg-gray-50 rounded-md transition-colors text-red-600 w-full text-left"
+                                            >
+                                                <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                                <span className="text-[15px] font-medium">Logout</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Wishlist */}
-                            <button className="hidden sm:block p-1 text-white hover:text-gray-300 transition-colors">
+                            <button
+                                onClick={() => handleProtectedAction('wishlist')}
+                                className="hidden sm:block p-1 text-white hover:text-gray-300 transition-colors"
+                            >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                             </button>
 
                             {/* Cart */}
-                            <button className="p-1 text-white hover:text-gray-300 transition-colors relative">
+                            <button
+                                onClick={() => handleProtectedAction('cart')}
+                                className="p-1 text-white hover:text-gray-300 transition-colors relative"
+                            >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                 </svg>
-                                <span className="absolute -top-1 -right-1.5 bg-rose-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                                    3
-                                </span>
+                                {isLoggedIn && (
+                                    <span className="absolute -top-1 -right-1.5 bg-rose-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                                        3
+                                    </span>
+                                )}
                             </button>
 
                             {/* Mobile Hamburger */}
