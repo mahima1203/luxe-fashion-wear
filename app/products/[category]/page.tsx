@@ -3,11 +3,12 @@
 import { useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import ProductCard from '@/app/ui/fashion/ProductCard';
-import { ProductGridSkeleton } from '@/app/ui/fashion/ProductSkeleton';
-import { fetchProducts, Product } from '@/app/lib/products';
-import FashionNavbar from '@/app/ui/fashion/FashionNavbar';
-import FashionFooter from '@/app/ui/fashion/FashionFooter';
+import ProductCard from '@/components/ui/fashion/ProductCard';
+import { ProductGridSkeleton } from '@/components/ui/fashion/ProductSkeleton';
+import { fetchProducts } from '@/api/products';
+import type { Product } from '@/interfaces/product';
+import FashionNavbar from '@/components/ui/fashion/FashionNavbar';
+import FashionFooter from '@/components/ui/fashion/FashionFooter';
 
 export default function ProductListingPage() {
     const { category } = useParams();

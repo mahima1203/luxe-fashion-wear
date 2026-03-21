@@ -1,12 +1,12 @@
 import { Metadata } from 'next';
-import FashionNavbar from '@/app/ui/fashion/FashionNavbar';
-import HeroBanner from '@/app/ui/fashion/HeroBanner';
-import CategoryGrid from '@/app/ui/fashion/CategoryGrid';
-import TrendingProducts from '@/app/ui/fashion/TrendingProducts';
-import DealsSection from '@/app/ui/fashion/DealsSection';
-import BrandShowcase from '@/app/ui/fashion/BrandShowcase';
-import Newsletter from '@/app/ui/fashion/Newsletter';
-import FashionFooter from '@/app/ui/fashion/FashionFooter';
+import FashionNavbar from '@/components/ui/fashion/FashionNavbar';
+import HeroBanner from '@/components/ui/fashion/HeroBanner';
+import CategoryGrid from '@/components/ui/fashion/CategoryGrid';
+import TrendingProducts from '@/components/ui/fashion/TrendingProducts';
+import DealsSection from '@/components/ui/fashion/DealsSection';
+import BrandShowcase from '@/components/ui/fashion/BrandShowcase';
+import Newsletter from '@/components/ui/fashion/Newsletter';
+import FashionFooter from '@/components/ui/fashion/FashionFooter';
 
 export const metadata: Metadata = {
     title: 'LUXE Fashion | Premium Fashion & Lifestyle Store',

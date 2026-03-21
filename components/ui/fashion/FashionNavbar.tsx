@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { CldImage } from 'next-cloudinary';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSearchResults } from '@/app/lib/searchActions';
-import type { Product } from '@/app/lib/products';
+import { getSearchResults } from '@/api/search';
+import type { Product } from '@/interfaces/product';
+import { useCartStore } from '@/app/store/cartStore';
 
 const navLinks = [
     { name: 'Women', href: '/products/women' },
@@ -33,6 +34,10 @@ export default function FashionNavbar() {
     const [isSearching, setIsSearching] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Store State
+    const cartCount = useCartStore((state) => state.cartCount);
+    const wishlistCount = useCartStore((state) => state.wishlistCount);
 
     // ... Effects ...
     useEffect(() => {
@@ -153,7 +158,13 @@ export default function FashionNavbar() {
     };
 
     const handleProtectedAction = (action: string) => {
-        console.log(`Action allowed: ${action}`);
+        if (action === 'cart') {
+            router.push('/cart');
+        } else if (action === 'wishlist') {
+            router.push('/wishlist');
+        } else {
+            console.log(`Action allowed: ${action}`);
+        }
     };
 
 
@@ -291,23 +302,23 @@ export default function FashionNavbar() {
                                     )}
 
                                     <div className="flex flex-col gap-1 relative z-10">
-                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046] group">
+                                        <Link href="/account?tab=profile" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046] group">
                                             <div className="w-6 h-6 rounded-full border border-gray-400 flex items-center justify-center flex-shrink-0 group-hover:border-[#f60046]">
                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                             </div>
-                                            <span className="text-[15px] font-medium">My account</span>
+                                            <span className="text-[15px] font-medium">My Account</span>
                                         </Link>
-                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                        <Link href="/account?tab=orders" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
                                             <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                                             <span className="text-[15px] font-medium">Order History</span>
                                         </Link>
-                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                        <Link href="/wishlist" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
                                             <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                                             <span className="text-[15px] font-medium">My Wishlist</span>
                                         </Link>
-                                        <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
-                                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                                            <span className="text-[15px] font-medium">Alerts & Coupon</span>
+                                        <Link href="/account?tab=payment" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
+                                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                                            <span className="text-[15px] font-medium">Payment Options</span>
                                         </Link>
                                         <Link href="#" className="flex items-center gap-4 px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-gray-800 hover:text-[#f60046]">
                                             <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
@@ -333,11 +344,16 @@ export default function FashionNavbar() {
                             {/* Wishlist */}
                             <button
                                 onClick={() => handleProtectedAction('wishlist')}
-                                className="hidden sm:block p-1 text-white hover:text-gray-300 transition-colors"
+                                className="hidden sm:block p-1 text-white hover:text-gray-300 transition-colors relative"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
+                                {isLoggedIn && wishlistCount > 0 && (
+                                    <span className="absolute -top-1 -right-1.5 bg-rose-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-in zoom-in">
+                                        {wishlistCount}
+                                    </span>
+                                )}
                             </button>
 
                             {/* Cart */}
@@ -348,9 +364,9 @@ export default function FashionNavbar() {
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                 </svg>
-                                {isLoggedIn && (
-                                    <span className="absolute -top-1 -right-1.5 bg-rose-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                                        3
+                                {isLoggedIn && cartCount > 0 && (
+                                    <span className="absolute -top-1 -right-1.5 bg-rose-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-in zoom-in">
+                                        {cartCount}
                                     </span>
                                 )}
                             </button>

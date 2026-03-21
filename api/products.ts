@@ -1,17 +1,6 @@
-export interface Product {
-    id: number;
-    brand: string;
-    name: string;
-    price: number;
-    originalPrice: number;
-    discount: number;
-    image: string;
-    badge?: 'New' | 'Bestseller' | 'Trending' | null;
-    category: 'men' | 'women';
-    subcategory: string;
-}
+import { Product } from '@/interfaces/product';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export async function fetchProducts(category: string, page: number = 1, limit: number = 10) {
     try {
@@ -37,6 +26,25 @@ export async function fetchProducts(category: string, page: number = 1, limit: n
             hasMore: false,
             total: 0
         };
+    }
+}
+
+export async function fetchProduct(id: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+            cache: 'no-store'
+        });
+        
+        if (!response.ok) {
+            if (response.status === 404) return null;
+            throw new Error(`Failed to fetch product: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data as Product;
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        return null;
     }
 }
 

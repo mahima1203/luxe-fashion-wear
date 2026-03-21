@@ -3,7 +3,8 @@
 import { CldImage } from 'next-cloudinary';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product } from '@/app/lib/products';
+import Link from 'next/link';
+import type { Product } from '@/interfaces/product';
 
 interface ProductCardProps {
     product: Product;
@@ -29,7 +30,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     };
 
     return (
-        <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100">
+        <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col h-full relative cursor-pointer">
+            <Link href={`/product/${product.id}`} className="absolute inset-0 z-10" aria-label={`View ${product.name}`} />
+            
             {/* Image Container */}
             <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
                 <CldImage
@@ -69,7 +72,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                         e.preventDefault();
                         toggleWishlist();
                     }}
-                    className="absolute bottom-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all duration-300 opacity-0 group-hover:opacity-100 z-10"
+                    className="absolute bottom-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
                 >
                     <svg
                         className={`w-4 h-4 transition-colors ${isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-gray-600'
@@ -88,7 +91,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </button>
 
                 {/* Add to Bag overlay */}
-                <div className="absolute inset-x-0 bottom-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                <div className="absolute inset-x-0 bottom-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20">
                     <button 
                         onClick={(e) => {
                             e.preventDefault();

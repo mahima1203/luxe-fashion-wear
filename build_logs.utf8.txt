@@ -1,0 +1,203 @@
+﻿
+> build
+> next build
+
+node.exe : [baseline-br
+owser-mapping] The 
+data in this module is 
+over two months old.  
+To ensure accurate 
+Baseline data, please 
+update: `npm i baseline
+-browser-mapping@latest
+ -D`
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: ([baseline-bro   
+ ws...ping@latest -    
+D`:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+   Γû▓ Next.js 16.0.10 (Turbopack)
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+[baseline-browser-mappi
+ng] The data in this 
+module is over two 
+months old.  To ensure 
+accurate Baseline 
+data, please update: 
+`npm i baseline-browser
+-mapping@latest -D`
+[baseline-browser-mappi
+ng] The data in this 
+module is over two 
+months old.  To ensure 
+accurate Baseline 
+data, please update: 
+`npm i baseline-browser
+-mapping@latest -D`
+ Γ£ô Compiled successfully in 9.4s
+   Running TypeScript ...
+   Collecting page data using 3 workers ...
+[baseline-browser-mappi
+ng] The data in this 
+module is over two 
+months old.  To ensure 
+accurate Baseline 
+data, please update: 
+`npm i baseline-browser
+-mapping@latest -D`
+[baseline-browser-mappi
+ng] The data in this 
+module is over two 
+months old.  To ensure 
+accurate Baseline 
+data, please update: 
+`npm i baseline-browser
+-mapping@latest -D`
+[baseline-browser-mappi
+ng] The data in this 
+module is over two 
+months old.  To ensure 
+accurate Baseline 
+data, please update: 
+`npm i baseline-browser
+-mapping@latest -D`
+   Generating static pages using 3 workers (0/10) ...
+[baseline-browser-mappi
+ng] The data in this 
+module is over two 
+months old.  To ensure 
+accurate Baseline 
+data, please update: 
+`npm i baseline-browser
+-mapping@latest -D`
+ Γ¿» useSearchParams() 
+should be wrapped in a 
+suspense boundary at 
+page "/account". Read 
+more: https://nextjs.or
+g/docs/messages/missing
+-suspense-with-csr-bail
+out
+    at S (C:\Users\Amit
+\OneDrive\Desktop\next-
+js\nextjs-dashboard\.ne
+xt\server\chunks\ssr\_2
+5c58220._.js:2:2111)
+    at p (C:\Users\Amit
+\OneDrive\Desktop\next-
+js\nextjs-dashboard\.ne
+xt\server\chunks\ssr\_2
+5c58220._.js:4:4848)
+    at n (C:\Users\Amit
+\OneDrive\Desktop\next-
+js\nextjs-dashboard\.ne
+xt\server\chunks\ssr\[r
+oot-of-the-server]__578
+d67f8._.js:1:25963)
+    at ar (C:\Users\Ami
+t\OneDrive\Desktop\next
+-js\nextjs-dashboard\no
+de_modules\.pnpm\next@1
+6.0.10_@babel+core@7._0
+be101f8880d89ca80c992a3
+f009e46c\node_modules\n
+ext\dist\compiled\next-
+server\app-page-turbo.r
+untime.prod.js:2:84366)
+    at aa (C:\Users\Ami
+t\OneDrive\Desktop\next
+-js\nextjs-dashboard\no
+de_modules\.pnpm\next@1
+6.0.10_@babel+core@7._0
+be101f8880d89ca80c992a3
+f009e46c\node_modules\n
+ext\dist\compiled\next-
+server\app-page-turbo.r
+untime.prod.js:2:86185)
+    at aa (C:\Users\Ami
+t\OneDrive\Desktop\next
+-js\nextjs-dashboard\no
+de_modules\.pnpm\next@1
+6.0.10_@babel+core@7._0
+be101f8880d89ca80c992a3
+f009e46c\node_modules\n
+ext\dist\compiled\next-
+server\app-page-turbo.r
+untime.prod.js:2:104714
+)
+    at as (C:\Users\Ami
+t\OneDrive\Desktop\next
+-js\nextjs-dashboard\no
+de_modules\.pnpm\next@1
+6.0.10_@babel+core@7._0
+be101f8880d89ca80c992a3
+f009e46c\node_modules\n
+ext\dist\compiled\next-
+server\app-page-turbo.r
+untime.prod.js:2:107952
+)
+    at ao (C:\Users\Ami
+t\OneDrive\Desktop\next
+-js\nextjs-dashboard\no
+de_modules\.pnpm\next@1
+6.0.10_@babel+core@7._0
+be101f8880d89ca80c992a3
+f009e46c\node_modules\n
+ext\dist\compiled\next-
+server\app-page-turbo.r
+untime.prod.js:2:105374
+)
+    at ap (C:\Users\Ami
+t\OneDrive\Desktop\next
+-js\nextjs-dashboard\no
+de_modules\.pnpm\next@1
+6.0.10_@babel+core@7._0
+be101f8880d89ca80c992a3
+f009e46c\node_modules\n
+ext\dist\compiled\next-
+server\app-page-turbo.r
+untime.prod.js:2:112881
+)
+    at al (C:\Users\Ami
+t\OneDrive\Desktop\next
+-js\nextjs-dashboard\no
+de_modules\.pnpm\next@1
+6.0.10_@babel+core@7._0
+be101f8880d89ca80c992a3
+f009e46c\node_modules\n
+ext\dist\compiled\next-
+server\app-page-turbo.r
+untime.prod.js:2:109984
+)
+Error occurred 
+prerendering page 
+"/account". Read more: 
+https://nextjs.org/docs
+/messages/prerender-err
+or
+Export encountered an 
+error on 
+/account/page: 
+/account, exiting the 
+build.
+ Γ¿» Next.js build 
+worker exited with 
+code: 1 and signal: 
+null
