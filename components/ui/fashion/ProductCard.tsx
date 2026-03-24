@@ -1,18 +1,27 @@
 'use client';
 
 import { CldImage } from 'next-cloudinary';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Product } from '@/interfaces/product';
+import { useCartStore } from '@/app/store/cartStore';
+import { toast } from 'sonner';
 
 interface ProductCardProps {
     product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-    const [isWishlisted, setIsWishlisted] = useState(false);
     const router = useRouter();
+    
+    // Connect to global Zustand Store
+    const wishlistItems = useCartStore((state) => state.wishlistItems);
+    const addToWishlist = useCartStore((state) => state.addToWishlist);
+    const removeFromWishlist = useCartStore((state) => state.removeFromWishlist);
+    const addToCart = useCartStore((state) => state.addToCart);
+
+    // Derive wishlist state dynamically
+    const isWishlisted = wishlistItems.some(item => item.id === product.id);
 
     // Authentication disabled per user request
     const isLoggedIn = true;
@@ -25,13 +34,19 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     const toggleWishlist = () => {
         handleProtectedAction('wishlist', () => {
-            setIsWishlisted((prev) => !prev);
+            if (isWishlisted) {
+                removeFromWishlist(product.id);
+                toast.info('Removed from Wishlist');
+            } else {
+                addToWishlist(product);
+                toast.success('Added to Wishlist');
+            }
         });
     };
 
     return (
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col h-full relative cursor-pointer">
-            <Link href={`/product/${product.id}`} className="absolute inset-0 z-10" aria-label={`View ${product.name}`} />
+            <Link href={`/product/${product.id}`} className="absolute inset-0 z-0" aria-label={`View ${product.name}`} />
             
             {/* Image Container */}
             <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
@@ -70,9 +85,10 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <button
                     onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         toggleWishlist();
                     }}
-                    className="absolute bottom-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
+                    className="absolute bottom-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all duration-300 opacity-0 group-hover:opacity-100 z-30"
                 >
                     <svg
                         className={`w-4 h-4 transition-colors ${isWishlisted ? 'text-rose-600 fill-rose-600' : 'text-gray-600'
@@ -91,15 +107,17 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </button>
 
                 {/* Add to Bag overlay */}
-                <div className="absolute inset-x-0 bottom-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20">
+                <div className="absolute inset-x-0 bottom-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 pointer-events-none">
                     <button 
                         onClick={(e) => {
                             e.preventDefault();
-                            handleProtectedAction('bag/cart', () => {
-                                console.log('Added to bag:', product.name);
+                            e.stopPropagation();
+                            handleProtectedAction('cart', () => {
+                                addToCart(product);
+                                toast.success('1 item added to Bag');
                             });
                         }}
-                        className="w-full bg-gray-900 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-colors duration-300"
+                        className="w-full bg-gray-900 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-colors duration-300 pointer-events-auto shadow-md"
                     >
                         Add to Bag
                     </button>

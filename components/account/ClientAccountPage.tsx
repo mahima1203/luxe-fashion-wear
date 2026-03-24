@@ -45,6 +45,39 @@ export default function ClientAccountPage() {
     
     // Default to 'profile' if invalid or missing tab
     const [activeTab, setActiveTab] = useState<TabType>('profile');
+    const [userInfo, setUserInfo] = useState<{ email: string; name: string; initial: string } | null>(null);
+
+    useEffect(() => {
+        const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift();
+            return null;
+        };
+
+        const token = getCookie('luxe_token');
+        if (token) {
+            try {
+                // Decode JWT payload securely on client side
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+
+                const decoded = JSON.parse(jsonPayload);
+                if (decoded && decoded.email) {
+                    const email = decoded.email;
+                    const namePart = email.split('@')[0];
+                    const name = namePart.split('.').map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+                    const initial = name.charAt(0).toUpperCase();
+                    setUserInfo({ email, name, initial });
+                }
+            } catch (error) {
+                console.error("Failed to parse token", error);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (tabParam && tabs.some(t => t.id === tabParam)) {
@@ -66,6 +99,13 @@ export default function ClientAccountPage() {
         window.history.pushState(null, '', `?tab=${tabId}`);
     };
 
+    const handleLogout = () => {
+        // Clear the token cookie
+        document.cookie = 'luxe_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax';
+        // Redirect to login
+        router.push('/login');
+    };
+
     return (
         <div className="min-h-screen bg-[#f9fafc] flex flex-col">
             <FashionNavbar />
@@ -83,12 +123,12 @@ export default function ClientAccountPage() {
                     <div className="w-full lg:w-72 flex-shrink-0 bg-white shadow-sm border border-gray-100 rounded-md overflow-hidden">
                         {/* User Profile Summary */}
                         <div className="p-6 bg-gray-50 border-b border-gray-100 flex items-center gap-4">
-                            <div className="w-14 h-14 bg-[#f60046] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md border-2 border-white">
-                                A
+                            <div className="w-14 h-14 bg-[#f60046] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md border-2 border-white uppercase">
+                                {userInfo ? userInfo.initial : 'U'}
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-gray-900">Amit Kumar</p>
-                                <p className="text-xs text-gray-500 truncate max-w-[150px]">amit.kumar@example.com</p>
+                                <p className="text-sm font-bold text-gray-900 capitalize">{userInfo ? userInfo.name : 'User'}</p>
+                                <p className="text-xs text-gray-500 truncate max-w-[150px]">{userInfo ? userInfo.email : 'Loading...'}</p>
                             </div>
                         </div>
 
@@ -112,7 +152,10 @@ export default function ClientAccountPage() {
                             ))}
                             
                             {/* Logout Button */}
-                            <button className="flex items-center gap-4 px-6 py-4 mt-auto border-t border-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors text-left font-medium">
+                            <button 
+                                onClick={handleLogout}
+                                className="flex items-center gap-4 px-6 py-4 mt-auto border-t border-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors text-left font-medium w-full"
+                            >
                                 <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                                 <span className="text-sm whitespace-nowrap text-red-600">Logout</span>
                             </button>
@@ -121,7 +164,7 @@ export default function ClientAccountPage() {
 
                     {/* Main Content Area */}
                     <div className="flex-1 w-full min-w-0">
-                        {activeTab === 'profile' && <ProfileTab />}
+                        {activeTab === 'profile' && <ProfileTab userInfo={userInfo} />}
                         {activeTab === 'orders' && <OrdersTab />}
                         {activeTab === 'addresses' && <AddressesTab />}
                         {activeTab === 'payment' && (

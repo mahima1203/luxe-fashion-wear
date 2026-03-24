@@ -20,10 +20,25 @@ export default function FashionNavbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [showAccountDropdown, setShowAccountDropdown] = useState(false);
-
-    // Authentication disabled per user request
-    const [isLoggedIn, setIsLoggedIn] = useState(true);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift();
+            return null;
+        };
+        setIsLoggedIn(!!getCookie('luxe_token'));
+    }, []);
+
+    const handleLogout = () => {
+        document.cookie = 'luxe_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax';
+        setIsLoggedIn(false);
+        setShowAccountDropdown(false);
+        router.push('/');
+    };
 
     const searchInputRef = useRef<HTMLInputElement>(null);
     const desktopSearchInputRef = useRef<HTMLInputElement>(null);
@@ -293,7 +308,10 @@ export default function FashionNavbar() {
                                     {!isLoggedIn && (
                                         <div className="mb-4 relative z-10">
                                             <button
-                                                onClick={() => { setIsLoggedIn(true); setShowAccountDropdown(false); }}
+                                                onClick={() => { 
+                                                    setShowAccountDropdown(false); 
+                                                    router.push('/login');
+                                                }}
                                                 className="w-full bg-[#f60046] hover:bg-[#d6003c] text-white font-semibold py-2.5 rounded-full transition-colors text-sm"
                                             >
                                                 Login/ Register
@@ -330,7 +348,7 @@ export default function FashionNavbar() {
                                         </Link>
                                         {isLoggedIn && (
                                             <button
-                                                onClick={() => { setIsLoggedIn(false); setShowAccountDropdown(false); }}
+                                                onClick={handleLogout}
                                                 className="flex items-center gap-4 px-2 py-2 mt-2 hover:bg-gray-50 rounded-md transition-colors text-red-600 w-full text-left"
                                             >
                                                 <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
