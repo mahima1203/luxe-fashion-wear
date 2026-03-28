@@ -9,12 +9,16 @@ export interface Customer {
 }
 
 export interface Address {
-    id: string;
-    label: string; // 'Home', 'Office', etc.
-    street: string;
+    id: number;
+    user_id: number;
+    full_name: string;
+    phone: string;
+    line1: string;
+    line2?: string;
     city: string;
     state: string;
-    postalCode: string;
-    country: string;
-    isDefault: boolean;
+    pincode: string;
+    type: string;
+    is_default: boolean;
+    created_at?: string;
 }

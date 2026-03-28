@@ -150,7 +150,14 @@ export default function ClientCartPage() {
                             </div>
                             
                             <button 
-                                onClick={() => router.push('/payment')}
+                                onClick={() => {
+                                    const hasToken = document.cookie.includes('luxe_token');
+                                    if (hasToken) {
+                                        router.push('/checkout');
+                                    } else {
+                                        router.push('/login?callbackUrl=/checkout');
+                                    }
+                                }}
                                 className="w-full bg-[#f60046] hover:bg-[#d6003c] text-white font-bold py-3.5 px-6 rounded transition-colors text-sm uppercase tracking-wider shadow-md mb-4"
                             >
                                 Proceed to Checkout

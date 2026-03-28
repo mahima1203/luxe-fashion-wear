@@ -30,13 +30,19 @@ export default function FashionNavbar() {
             if (parts.length === 2) return parts.pop()?.split(';').shift();
             return null;
         };
-        setIsLoggedIn(!!getCookie('luxe_token'));
+        const token = getCookie('luxe_token');
+        if (token) {
+            setIsLoggedIn(true);
+            // Fetch account's true cart from the DB on first render
+            useCartStore.getState().syncFromApi();
+        }
     }, []);
 
     const handleLogout = () => {
         document.cookie = 'luxe_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax';
         setIsLoggedIn(false);
         setShowAccountDropdown(false);
+        useCartStore.getState().clearStore(); // Clear browser ghost items
         router.push('/');
     };
 
@@ -52,7 +58,8 @@ export default function FashionNavbar() {
 
     // Store State
     const cartCount = useCartStore((state) => state.cartCount);
-    const wishlistCount = useCartStore((state) => state.wishlistCount);
+    const wishlistItems = useCartStore((state) => state.wishlistItems);
+    const wishlistCount = wishlistItems.length;
 
     // ... Effects ...
     useEffect(() => {

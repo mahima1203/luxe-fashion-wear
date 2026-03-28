@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import FashionNavbar from '@/components/ui/fashion/FashionNavbar';
 import FashionFooter from '@/components/ui/fashion/FashionFooter';
+import { useCartStore } from '@/app/store/cartStore';
 
 function LoginContent() {
     const router = useRouter();
@@ -63,6 +64,9 @@ function LoginContent() {
             const data = await res.json();
             // Store JWT securely in a cookie
             document.cookie = `luxe_token=${data.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+
+            // Sync the true cart from the backend before redirecting
+            await useCartStore.getState().syncFromApi();
 
             // Redirect back to original page
             router.push(callbackUrl);
