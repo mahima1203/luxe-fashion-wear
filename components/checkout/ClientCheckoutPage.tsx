@@ -21,15 +21,17 @@ export default function ClientCheckoutPage() {
     const cartItems = useCartStore((state) => state.cartItems);
     const cartCount = useCartStore((state) => state.cartCount);
     
+    const [isOrderCompleted, setIsOrderCompleted] = useState(false);
+    
     // Check auth and cart immediately
     useEffect(() => {
         const hasToken = document.cookie.includes('luxe_token');
         if (!hasToken) {
             router.push('/login?callbackUrl=/checkout');
-        } else if (cartCount === 0) {
+        } else if (cartCount === 0 && !isOrderCompleted) {
             router.push('/cart');
         }
-    }, [cartCount, router]);
+    }, [cartCount, router, isOrderCompleted]);
 
     const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -118,10 +120,22 @@ export default function ClientCheckoutPage() {
                 mockSignature
             );
             toast.success('Payment Verified & Successful!', { id: toastId });
+            // Mark order as complete so the safety-check effect doesn't redirect to /cart
+            setIsOrderCompleted(true);
             
             // Clear Cart upon success
             useCartStore.setState({ cartItems: [], cartCount: 0 });
-            router.push(`/order-confirmation/${pendingOrderDetails.id}`);
+
+            // Invalidate orders query so the list is fresh when we redirect
+            await queryClient.invalidateQueries({ queryKey: ['orders'] });
+            router.refresh();
+            
+            // Update the existing toast to show success and redirection
+            toast.success('Payment Successful! Redirecting to your Orders...', { id: toastId });
+            
+            setTimeout(() => {
+                router.push('/account?tab=orders');
+            }, 1200);
             
         } catch (error) {
             toast.error('Payment verification failed on the server.', { id: toastId });
