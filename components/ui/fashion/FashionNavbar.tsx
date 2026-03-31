@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { CldImage } from 'next-cloudinary';
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { getSearchResults } from '@/api/search';
 import type { Product } from '@/interfaces/product';
 import { useCartStore } from '@/app/store/cartStore';
@@ -22,6 +22,7 @@ export default function FashionNavbar() {
     const [showAccountDropdown, setShowAccountDropdown] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         const getCookie = (name: string) => {
@@ -180,6 +181,11 @@ export default function FashionNavbar() {
     };
 
     const handleProtectedAction = (action: string) => {
+        if (!isLoggedIn) {
+            router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+            return;
+        }
+
         if (action === 'cart') {
             router.push('/cart');
         } else if (action === 'wishlist') {

@@ -16,6 +16,7 @@ interface CartState {
     cartItems: CartItem[];
     wishlistItems: WishlistItem[];
     cartCount: number;
+    selectedIds: number[]; // Product IDs of selected items for checkout
 
     // Actions
     addToCart: (product: Product, quantity?: number) => Promise<void>;
@@ -24,6 +25,11 @@ interface CartState {
     
     addToWishlist: (product: Product) => Promise<void>;
     removeFromWishlist: (productId: number) => Promise<void>;
+
+    // Selection
+    toggleSelect: (productId: number) => void;
+    setAllSelected: (selected: boolean) => void;
+    clearSelected: () => void;
 
     // Sub state
     syncFromApi: () => Promise<void>;
@@ -36,6 +42,7 @@ export const useCartStore = create<CartState>()(
             cartItems: [],
             wishlistItems: [],
             cartCount: 0,
+            selectedIds: [],
 
             // Automatically fetches and populates actual DB state
             syncFromApi: async () => {
@@ -61,14 +68,21 @@ export const useCartStore = create<CartState>()(
 
                     const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-                    set({ cartItems, wishlistItems, cartCount });
+                    // Sync selectedIds (only keep those that still exist in cart)
+                    const currentSelected = get().selectedIds;
+                    const validSelected = currentSelected.filter(id => cartItems.some(item => item.id === id));
+                    
+                    // If no one is selected, default to all (Standard expectation on refresh)
+                    const newSelected = validSelected.length > 0 ? validSelected : cartItems.map(i => i.id);
+
+                    set({ cartItems, wishlistItems, cartCount, selectedIds: newSelected });
                 } catch (error) {
                     console.error("Failed to sync store from API", error);
                 }
             },
 
             clearStore: () => {
-                set({ cartItems: [], wishlistItems: [], cartCount: 0 });
+                set({ cartItems: [], wishlistItems: [], cartCount: 0, selectedIds: [] });
             },
 
             addToCart: async (product, quantity = 1) => {
@@ -84,7 +98,7 @@ export const useCartStore = create<CartState>()(
                     // 2. Perform optimistic/local UI update
                     set((state) => {
                         const existingItem = state.cartItems.find(item => item.id === product.id);
-                        let newCartItems;
+                        let newCartItems: CartItem[];
                         if (existingItem) {
                             newCartItems = state.cartItems.map(item =>
                                 item.id === product.id ? { ...item, quantity: item.quantity + quantity, ...(db_id && { db_id }) } : item
@@ -92,8 +106,14 @@ export const useCartStore = create<CartState>()(
                         } else {
                             newCartItems = [...state.cartItems, { ...product, quantity, db_id }];
                         }
-                        const newCount = newCartItems.reduce((acc, item) => acc + item.quantity, 0);
-                        return { cartItems: newCartItems, cartCount: newCount };
+                        const newCount = newCartItems.reduce((acc: number, item: CartItem) => acc + item.quantity, 0);
+                        
+                        // Auto-select the item if it's new
+                        const newSelectedIds = state.selectedIds.includes(product.id) 
+                            ? state.selectedIds 
+                            : [...state.selectedIds, product.id];
+
+                        return { cartItems: newCartItems, cartCount: newCount, selectedIds: newSelectedIds };
                     });
                 } catch (error) {
                     console.error("addToCart API Error", error);
@@ -112,7 +132,8 @@ export const useCartStore = create<CartState>()(
                     set((state) => {
                         const newCartItems = state.cartItems.filter(item => item.id !== productId);
                         const newCount = newCartItems.reduce((acc, item) => acc + item.quantity, 0);
-                        return { cartItems: newCartItems, cartCount: newCount };
+                        const newSelectedIds = state.selectedIds.filter(id => id !== productId);
+                        return { cartItems: newCartItems, cartCount: newCount, selectedIds: newSelectedIds };
                     });
                 } catch (error) {
                     console.error("removeFromCart API Error", error);
@@ -180,6 +201,25 @@ export const useCartStore = create<CartState>()(
                 } catch (error) {
                     console.error("removeFromWishlist API Error", error);
                 }
+            },
+
+            toggleSelect: (productId) => {
+                set((state) => ({
+                    selectedIds: state.selectedIds.includes(productId)
+                        ? state.selectedIds.filter(id => id !== productId)
+                        : [...state.selectedIds, productId]
+                }));
+            },
+
+            setAllSelected: (selected) => {
+                const state = get();
+                set({
+                    selectedIds: selected ? state.cartItems.map(item => item.id) : []
+                });
+            },
+
+            clearSelected: () => {
+                set({ selectedIds: [] });
             }
         }),
         {

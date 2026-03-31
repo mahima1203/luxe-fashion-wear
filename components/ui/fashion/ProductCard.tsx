@@ -1,11 +1,12 @@
 'use client';
 
 import { CldImage } from 'next-cloudinary';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import type { Product } from '@/interfaces/product';
 import { useCartStore } from '@/app/store/cartStore';
 import { toast } from 'sonner';
+import { hasToken } from '@/api/storeApi';
 
 interface ProductCardProps {
     product: Product;
@@ -13,6 +14,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
     const router = useRouter();
+    const pathname = usePathname();
     
     // Connect to global Zustand Store
     const wishlistItems = useCartStore((state) => state.wishlistItems);
@@ -23,10 +25,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     // Derive wishlist state dynamically
     const isWishlisted = wishlistItems.some(item => item.id === product.id);
 
-    // Authentication disabled per user request
-    const isLoggedIn = true;
-
     const handleProtectedAction = (action: string, callback?: () => void) => {
+        if (!hasToken()) {
+            router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+            return;
+        }
+
         if (callback) {
             callback();
         }

@@ -3,6 +3,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useCartStore } from '@/app/store/cartStore';
 import { toast } from 'sonner';
 import type { Product } from '@/interfaces/product';
+import { hasToken } from '@/api/storeApi';
 
 export default function ProductActionsClient({ product }: { product: Product }) {
     const router = useRouter();
@@ -11,10 +12,7 @@ export default function ProductActionsClient({ product }: { product: Product }) 
     const addToWishlist = useCartStore((state) => state.addToWishlist);
 
     const handleProtectedAction = (actionName: string) => {
-        // Simple client-side auth check looking for our API token
-        const hasToken = document.cookie.split(';').some((item) => item.trim().startsWith('luxe_token='));
-        
-        if (!hasToken) {
+        if (!hasToken()) {
             // Not logged in -> send to login page, remember where we came from
             router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
             return;

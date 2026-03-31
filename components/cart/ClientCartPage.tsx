@@ -9,12 +9,16 @@ import { useRouter } from 'next/navigation';
 
 export default function ClientCartPage() {
     const cartItems = useCartStore((state) => state.cartItems);
+    const selectedIds = useCartStore((state) => state.selectedIds);
     const removeFromCart = useCartStore((state) => state.removeFromCart);
     const updateQuantity = useCartStore((state) => state.updateQuantity);
+    const toggleSelect = useCartStore((state) => state.toggleSelect);
+    const setAllSelected = useCartStore((state) => state.setAllSelected);
     const router = useRouter();
 
-    const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const totalMRP = cartItems.reduce((acc, item) => acc + (item.originalPrice * item.quantity), 0);
+    const selectedItems = cartItems.filter(item => selectedIds.includes(item.id));
+    const subtotal = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const totalMRP = selectedItems.reduce((acc, item) => acc + (item.originalPrice * item.quantity), 0);
     const discountTotal = totalMRP - subtotal;
     const shipping = subtotal > 999 ? 0 : (subtotal > 0 ? 99 : 0);
     const total = subtotal + shipping;
@@ -24,12 +28,28 @@ export default function ClientCartPage() {
             <FashionNavbar />
             
             <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    Shopping Bag 
-                    <span className="text-base font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-                        {cartItems.reduce((acc, item) => acc + item.quantity, 0)} Items
-                    </span>
-                </h1>
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        Shopping Bag 
+                        <span className="text-base font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                            {cartItems.reduce((acc, item) => acc + item.quantity, 0)} Items
+                        </span>
+                    </h1>
+                    
+                    {cartItems.length > 0 && (
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                className="w-4 h-4 rounded border-gray-300 text-[#f60046] focus:ring-[#f60046]"
+                                checked={selectedIds.length === cartItems.length && cartItems.length > 0}
+                                onChange={(e) => setAllSelected(e.target.checked)}
+                            />
+                            <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                                Select All ({selectedIds.length}/{cartItems.length})
+                            </span>
+                        </label>
+                    )}
+                </div>
                 
                 {cartItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 bg-white rounded shadow-sm border border-gray-100">
@@ -45,7 +65,16 @@ export default function ClientCartPage() {
                         {/* Cart Items List */}
                         <div className="w-full lg:w-2/3 flex flex-col gap-4">
                             {cartItems.map((item) => (
-                                <div key={item.id} className="bg-white p-4 rounded border border-gray-200 flex gap-4 sm:gap-6 relative group">
+                                <div key={item.id} className={`bg-white p-4 rounded border transition-all flex gap-4 sm:gap-6 relative group ${selectedIds.includes(item.id) ? 'border-gray-200' : 'border-gray-100 opacity-75'}`}>
+                                    {/* Selection Checkbox */}
+                                    <div className="flex items-center">
+                                        <input 
+                                            type="checkbox" 
+                                            className="w-4 h-4 rounded border-gray-300 text-[#f60046] focus:ring-[#f60046] cursor-pointer"
+                                            checked={selectedIds.includes(item.id)}
+                                            onChange={() => toggleSelect(item.id)}
+                                        />
+                                    </div>
                                     <Link href={`/products/${item.id}`} className="w-24 h-32 sm:w-32 sm:h-40 bg-gray-100 rounded overflow-hidden flex-shrink-0 relative">
                                         <CldImage 
                                             src={item.image} 
@@ -158,9 +187,14 @@ export default function ClientCartPage() {
                                         router.push('/login?callbackUrl=/checkout');
                                     }
                                 }}
-                                className="w-full bg-[#f60046] hover:bg-[#d6003c] text-white font-bold py-3.5 px-6 rounded transition-colors text-sm uppercase tracking-wider shadow-md mb-4"
+                                className={`w-full font-bold py-3.5 px-6 rounded transition-colors text-sm uppercase tracking-wider shadow-md mb-4 ${
+                                    selectedIds.length > 0 
+                                    ? 'bg-[#f60046] hover:bg-[#d6003c] text-white' 
+                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                }`}
+                                disabled={selectedIds.length === 0}
                             >
-                                Proceed to Checkout
+                                Proceed to Checkout ({selectedIds.length})
                             </button>
                             
                             {/* Trust badges */}

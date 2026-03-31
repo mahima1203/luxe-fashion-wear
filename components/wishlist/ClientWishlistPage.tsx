@@ -6,25 +6,48 @@ import FashionFooter from '@/components/ui/fashion/FashionFooter';
 import Link from 'next/link';
 import { CldImage } from 'next-cloudinary';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { hasToken } from '@/api/storeApi';
 
 export default function ClientWishlistPage() {
+    const router = useRouter();
+    const pathname = usePathname();
     const wishlistItems = useCartStore((state) => state.wishlistItems);
     const removeFromWishlist = useCartStore((state) => state.removeFromWishlist);
     const addToCart = useCartStore((state) => state.addToCart);
 
+    useEffect(() => {
+        if (!hasToken()) {
+            router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        }
+    }, [router, pathname]);
+
+    const handleProtectedAction = (callback: () => void) => {
+        if (!hasToken()) {
+            router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+            return;
+        }
+        callback();
+    };
+
     const handleMoveToBag = (product: any) => {
-        addToCart(product);
-        removeFromWishlist(product.id);
-        toast.success('Moved to Bag', {
-            description: `${product.name} has been moved to your bag.`,
-            action: { label: 'View Bag', onClick: () => window.location.href = '/cart' }
+        handleProtectedAction(() => {
+            addToCart(product);
+            removeFromWishlist(product.id);
+            toast.success('Moved to Bag', {
+                description: `${product.name} has been moved to your bag.`,
+                action: { label: 'View Bag', onClick: () => router.push('/cart') }
+            });
         });
     };
 
     const handleRemove = (product: any) => {
-        removeFromWishlist(product.id);
-        toast.success('Removed from Wishlist', {
-            description: `${product.name} removed.`
+        handleProtectedAction(() => {
+            removeFromWishlist(product.id);
+            toast.success('Removed from Wishlist', {
+                description: `${product.name} removed.`
+            });
         });
     };
 

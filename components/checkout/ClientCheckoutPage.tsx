@@ -19,7 +19,12 @@ export default function ClientCheckoutPage() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const cartItems = useCartStore((state) => state.cartItems);
+    const selectedIds = useCartStore((state) => state.selectedIds);
     const cartCount = useCartStore((state) => state.cartCount);
+
+    // Only process items that were selected in the bag
+    const selectedItems = cartItems.filter(item => selectedIds.includes(item.id));
+    const selectedCount = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
     
     const [isOrderCompleted, setIsOrderCompleted] = useState(false);
     
@@ -28,10 +33,10 @@ export default function ClientCheckoutPage() {
         const hasToken = document.cookie.includes('luxe_token');
         if (!hasToken) {
             router.push('/login?callbackUrl=/checkout');
-        } else if (cartCount === 0 && !isOrderCompleted) {
+        } else if ((cartCount === 0 || selectedIds.length === 0) && !isOrderCompleted) {
             router.push('/cart');
         }
-    }, [cartCount, router, isOrderCompleted]);
+    }, [cartCount, selectedIds, router, isOrderCompleted]);
 
     const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -65,8 +70,8 @@ export default function ClientCheckoutPage() {
         onError: () => toast.error('Failed to add address')
     });
 
-    const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const totalMRP = cartItems.reduce((acc, item) => acc + (item.originalPrice * item.quantity), 0);
+    const subtotal = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const totalMRP = selectedItems.reduce((acc, item) => acc + (item.originalPrice * item.quantity), 0);
     const discountTotal = totalMRP - subtotal;
     const shipping = subtotal > 999 ? 0 : (subtotal > 0 ? 99 : 0);
     const total = subtotal + shipping;
@@ -80,7 +85,8 @@ export default function ClientCheckoutPage() {
         setIsCreatingOrder(true);
         try {
             // Construct payload according to backend schema
-            const orderItems = cartItems.map(item => ({
+            // Construct payload according to backend schema (ONLY SELECTED ITEMS)
+            const orderItems = selectedItems.map(item => ({
                 product_id: Number(item.id),
                 product_name: item.name,
                 product_brand: item.brand,
@@ -123,8 +129,8 @@ export default function ClientCheckoutPage() {
             // Mark order as complete so the safety-check effect doesn't redirect to /cart
             setIsOrderCompleted(true);
             
-            // Clear Cart upon success
-            useCartStore.setState({ cartItems: [], cartCount: 0 });
+            // Sync Cart from DB upon success (removes ordered items, keeps others if any)
+            await useCartStore.getState().syncFromApi();
 
             // Invalidate orders query so the list is fresh when we redirect
             await queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -213,15 +219,19 @@ export default function ClientCheckoutPage() {
                             </h2>
                             
                             <div className="max-h-60 overflow-y-auto pr-2 mb-6 space-y-4">
-                                {cartItems.map((item) => (
+                                {selectedItems.map((item) => (
                                     <div key={item.id} className="flex gap-4">
-                                        <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0">
-                                            <img src={item.image.startsWith('http') ? item.image : `https://res.cloudinary.com/demo/image/upload/${item.image}`} alt={item.name} className="w-full h-full object-cover rounded" />
+                                        <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 relative">
+                                            <img 
+                                                src={item.image.startsWith('http') ? item.image : `https://res.cloudinary.com/demo/image/upload/${item.image}`} 
+                                                alt={item.name} 
+                                                className="w-full h-full object-cover rounded" 
+                                            />
                                         </div>
                                         <div className="flex-1">
                                             <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{item.brand}</h4>
                                             <p className="text-xs text-gray-500 line-clamp-1">{item.name}</p>
-                                            <p className="text-xs font-semibold mt-1">Qty: {item.quantity}</p>
+                                            <p className="text-xs font-semibold mt-1 text-gray-700">Qty: {item.quantity}</p>
                                         </div>
                                         <div className="text-sm font-bold text-gray-900">
                                             ₹{(item.price * item.quantity).toLocaleString()}
@@ -232,7 +242,7 @@ export default function ClientCheckoutPage() {
                             
                             <div className="border-t border-gray-100 pt-4 space-y-3 text-sm text-gray-600 mb-6">
                                 <div className="flex justify-between">
-                                    <span>Total MRP ({cartCount} items)</span>
+                                    <span>Total MRP ({selectedCount} {selectedCount === 1 ? 'item' : 'items'})</span>
                                     <span>₹{totalMRP.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-emerald-600">
