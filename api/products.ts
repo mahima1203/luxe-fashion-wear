@@ -65,3 +65,31 @@ export async function searchProducts(query: string, limit: number = 5) {
         return [];
     }
 }
+
+export async function fetchReviews(productId: number) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/reviews/product/${productId}`, {
+            cache: 'no-store'
+        });
+        if (!response.ok) throw new Error("Failed to fetch reviews");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching reviews:", error);
+        return [];
+    }
+}
+
+export async function checkReviewEligibility(productId: number, token: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/reviews/can-review/${productId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            cache: 'no-store'
+        });
+        if (!response.ok) return { can_review: false, message: "Error checking eligibility" };
+        return await response.json();
+    } catch (error) {
+        return { can_review: false, message: "Error checking eligibility" };
+    }
+}
