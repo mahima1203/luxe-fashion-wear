@@ -12,8 +12,21 @@ import { useCartStore } from '@/app/store/cartStore';
 import FashionNavbar from '@/components/ui/fashion/FashionNavbar';
 import FashionFooter from '@/components/ui/fashion/FashionFooter';
 import AddressFormModal from '@/components/account/components/AddressFormModal';
-import DummyPaymentGateway from './DummyPaymentGateway';
 import { createAddress } from '@/api/addresses';
+
+const loadRazorpay = () => {
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => {
+            resolve(true);
+        };
+        script.onerror = () => {
+            resolve(false);
+        };
+        document.body.appendChild(script);
+    });
+};
 
 export default function ClientCheckoutPage() {
     const router = useRouter();
@@ -41,10 +54,6 @@ export default function ClientCheckoutPage() {
     const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-    
-    // Payment Gateway Modal State
-    const [isPaymentGatewayOpen, setIsPaymentGatewayOpen] = useState(false);
-    const [pendingOrderDetails, setPendingOrderDetails] = useState<{ id: number; rzOrderId: string } | null>(null);
 
     const { data: addresses, isLoading: loadingAddresses } = useQuery({
         queryKey: ['addresses'],
@@ -83,7 +92,15 @@ export default function ClientCheckoutPage() {
         }
 
         setIsCreatingOrder(true);
+        const toastId = toast.loading('Initiating secure payment...');
+        
         try {
+            const res = await loadRazorpay();
+            if (!res) {
+                toast.error('Razorpay SDK failed to load. Are you online?', { id: toastId });
+                return;
+            }
+
             // Construct payload according to backend schema
             // Construct payload according to backend schema (ONLY SELECTED ITEMS)
             const orderItems = selectedItems.map(item => ({
@@ -98,32 +115,60 @@ export default function ClientCheckoutPage() {
             // 1. Create Internal Order
             const order = await createOrderFromCart(selectedAddressId, orderItems);
             
-            // 2. Open Dummy Payment Gateway instead of Razorpay
-            // The Razorpay mock endpoint returns a dummy order_id we can still track.
+            // 2. Create Razorpay Order
             const rzOrder = await createRazorpayOrder(order.id);
             
-            setPendingOrderDetails({ id: order.id, rzOrderId: rzOrder.id });
-            setIsPaymentGatewayOpen(true);
+            toast.dismiss(toastId);
+            
+            // 3. Open Razorpay Checkout Modal
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
+                amount: rzOrder.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                currency: rzOrder.currency,
+                name: "Luxe Fashion",
+                description: "Purchase from Luxe Fashion",
+                image: "https://next-learn-dashboard.vercel.sh/favicon.ico",
+                order_id: rzOrder.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+                handler: async function (response: any) {
+                    await handlePaymentSuccess(
+                        order.id,
+                        response.razorpay_order_id,
+                        response.razorpay_payment_id,
+                        response.razorpay_signature
+                    );
+                },
+                prefill: {
+                    name: addresses?.find(a => a.id === selectedAddressId)?.full_name || "Luxe User",
+                    email: "user@luxee.com",
+                    contact: addresses?.find(a => a.id === selectedAddressId)?.phone || ''
+                },
+                theme: {
+                    color: "#f60046"
+                }
+            };
+            
+            const paymentObject = new (window as any).Razorpay(options);
+            paymentObject.on('payment.failed', function (response: any) {
+                toast.error(`Payment Failed: ${response.error.description}`);
+            });
+            paymentObject.open();
             
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred during checkout');
+            toast.error(error.message || 'An error occurred during checkout', { id: toastId });
         } finally {
             setIsCreatingOrder(false);
         }
     };
 
-    const handlePaymentSuccess = async (mockPaymentId: string, mockSignature: string) => {
-        if (!pendingOrderDetails) return;
-        
-        setIsPaymentGatewayOpen(false);
+    const handlePaymentSuccess = async (internalOrderId: number, rzOrderId: string, paymentId: string, signature: string) => {
         const toastId = toast.loading('Verifying secure payment...');
         
         try {
             await verifyPayment(
-                pendingOrderDetails.id, 
-                pendingOrderDetails.rzOrderId, 
-                mockPaymentId, 
-                mockSignature
+                internalOrderId, 
+                rzOrderId, 
+                paymentId, 
+                signature
             );
             toast.success('Payment Verified & Successful!', { id: toastId });
             // Mark order as complete so the safety-check effect doesn't redirect to /cart
@@ -286,16 +331,6 @@ export default function ClientCheckoutPage() {
                 isOpen={isAddressModalOpen} 
                 onClose={() => setIsAddressModalOpen(false)} 
                 onSave={(addr) => addAddressMutation.mutate(addr)} 
-            />
-            
-            {/* Custom Payment Gateway Modal */}
-            <DummyPaymentGateway 
-                isOpen={isPaymentGatewayOpen}
-                onClose={() => setIsPaymentGatewayOpen(false)}
-                onSuccess={handlePaymentSuccess}
-                amount={total}
-                email="user@luxee.com"
-                phone={addresses?.find(a => a.id === selectedAddressId)?.phone || ''}
             />
             
             <FashionFooter />
