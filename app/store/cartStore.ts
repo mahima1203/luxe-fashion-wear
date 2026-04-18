@@ -6,6 +6,7 @@ import * as storeApi from '@/api/storeApi';
 export interface CartItem extends Product {
     quantity: number;
     db_id?: number; // Backend CartItem ID
+    size?: string;
 }
 
 export interface WishlistItem extends Product {
@@ -19,7 +20,7 @@ interface CartState {
     selectedIds: number[]; // Product IDs of selected items for checkout
 
     // Actions
-    addToCart: (product: Product, quantity?: number) => Promise<void>;
+    addToCart: (product: Product, quantity?: number, size?: string) => Promise<void>;
     removeFromCart: (productId: number) => Promise<void>;
     updateQuantity: (productId: number, quantity: number) => Promise<void>;
     
@@ -58,7 +59,8 @@ export const useCartStore = create<CartState>()(
                     const cartItems: CartItem[] = apiCart.map((item: any) => ({
                         ...item.product,
                         quantity: item.quantity,
-                        db_id: item.id
+                        db_id: item.id,
+                        size: item.size
                     }));
 
                     const wishlistItems: WishlistItem[] = apiWishlist.map((item: any) => ({
@@ -85,26 +87,26 @@ export const useCartStore = create<CartState>()(
                 set({ cartItems: [], wishlistItems: [], cartCount: 0, selectedIds: [] });
             },
 
-            addToCart: async (product, quantity = 1) => {
+            addToCart: async (product, quantity = 1, size?: string) => {
                 try {
                     let db_id: number | undefined;
 
                     // 1. Sync backend if logged in
                     if (storeApi.hasToken()) {
-                        const res = await storeApi.addToCartApi(product.id, quantity);
+                        const res = await storeApi.addToCartApi(product.id, quantity, size);
                         db_id = res.id;
                     }
 
                     // 2. Perform optimistic/local UI update
                     set((state) => {
-                        const existingItem = state.cartItems.find(item => item.id === product.id);
+                        const existingItem = state.cartItems.find(item => item.id === product.id && item.size === size);
                         let newCartItems: CartItem[];
                         if (existingItem) {
                             newCartItems = state.cartItems.map(item =>
-                                item.id === product.id ? { ...item, quantity: item.quantity + quantity, ...(db_id && { db_id }) } : item
+                                item.id === product.id && item.size === size ? { ...item, quantity: item.quantity + quantity, ...(db_id && { db_id }) } : item
                             );
                         } else {
-                            newCartItems = [...state.cartItems, { ...product, quantity, db_id }];
+                            newCartItems = [...state.cartItems, { ...product, quantity, size, db_id }];
                         }
                         const newCount = newCartItems.reduce((acc: number, item: CartItem) => acc + item.quantity, 0);
                         

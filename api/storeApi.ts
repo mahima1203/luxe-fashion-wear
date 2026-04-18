@@ -23,12 +23,12 @@ export const fetchCartFromApi = async () => {
     return res.json();
 };
 
-export const addToCartApi = async (product_id: number, quantity: number = 1) => {
+export const addToCartApi = async (product_id: number, quantity: number = 1, size?: string) => {
     if (!hasToken()) return null;
     const res = await fetch(`${API_URL}/api/users/cart`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ product_id, quantity })
+        body: JSON.stringify({ product_id, quantity, size })
     });
     if (!res.ok) throw new Error('Failed to add to cart API');
     return res.json();

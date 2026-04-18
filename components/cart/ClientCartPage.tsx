@@ -100,7 +100,7 @@ export default function ClientCartPage() {
                                             </div>
                                         </div>
                                         
-                                        <div className="text-sm text-gray-500 mt-2 mb-auto">Size: <span className="text-gray-900 font-medium">M</span></div>
+                                        <div className="text-sm text-gray-500 mt-2 mb-auto">Size: <span className="text-gray-900 font-medium">{item.size || 'M'}</span></div>
                                         
                                         <div className="flex items-center gap-4 mt-4">
                                             {/* Quantity Control */}

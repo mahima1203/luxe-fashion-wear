@@ -83,37 +83,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                             <span className="text-sm font-bold text-rose-600 cursor-pointer">View Offers</span>
                         </div>
 
-                        {/* Size Selection */}
-                        <div className="mb-8">
-                            <div className="flex justify-between items-center mb-3">
-                                <h3 className="text-sm font-bold text-gray-900">Select Size</h3>
-                                <button className="text-sm font-bold text-rose-600">Size Guide</button>
-                            </div>
-                            <div className="flex gap-2 flex-wrap mb-2">
-                                {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                                    <button key={size} className="w-10 h-10 sm:w-12 sm:h-12 rounded border border-gray-300 flex items-center justify-center text-sm text-gray-700 hover:border-rose-600 hover:text-rose-600 transition-colors focus:outline-none focus:border-rose-600 focus:text-rose-600">
-                                        {size}
-                                    </button>
-                                ))}
-                            </div>
-                            <p className="text-xs text-gray-600">Please check size chart table to know the exact size to be ordered.<br/>Polyester, Non-Wash</p>
-                        </div>
-                        
-                        {/* Available Offers section (mock) */}
-                        <div className="mb-8">
-                            <h3 className="text-sm font-bold text-gray-900 mb-3">Available Offers</h3>
-                            <div className="flex items-start gap-3 text-sm text-gray-700">
-                                <div className="text-amber-500 mt-0.5">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
-                                </div>
-                                <div className="flex-1">
-                                    <span className="font-semibold">Flat 10% OFF.</span> Applying this coupon makes eligible products non-ret... <span className="text-blue-600 cursor-pointer">more</span>
+                        <ProductActionsClient product={product}>
+                            {/* Available Offers section (mock) */}
+                            <div className="mb-8">
+                                <h3 className="text-sm font-bold text-gray-900 mb-3">Available Offers</h3>
+                                <div className="flex items-start gap-3 text-sm text-gray-700">
+                                    <div className="text-amber-500 mt-0.5">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <span className="font-semibold">Flat 10% OFF.</span> Applying this coupon makes eligible products non-ret... <span className="text-blue-600 cursor-pointer">more</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Sticky Bottom Action Buttons (Client Component) */}
-                        <ProductActionsClient product={product} />
+                        </ProductActionsClient>
                         
                     </div>
                 </div>
