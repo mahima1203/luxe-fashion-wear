@@ -120,7 +120,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                         }}
                         className="w-full bg-gray-900 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-colors duration-300 pointer-events-auto shadow-md"
                     >
-                        Select Size
+                        Add to Bag
                     </button>
                 </div>
             </div>

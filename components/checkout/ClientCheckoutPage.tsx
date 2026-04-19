@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { fetchAddresses } from '@/api/addresses';
 import { createOrderFromCart } from '@/api/orders';
 import { createRazorpayOrder, verifyPayment } from '@/api/payments';
-import { useCartStore } from '@/app/store/cartStore';
+import { useCartStore, getLineItemId } from '@/app/store/cartStore';
 import FashionNavbar from '@/components/ui/fashion/FashionNavbar';
 import FashionFooter from '@/components/ui/fashion/FashionFooter';
 import AddressFormModal from '@/components/account/components/AddressFormModal';
@@ -37,7 +37,7 @@ export default function ClientCheckoutPage() {
     const cartCount = useCartStore((state) => state.cartCount);
 
     // Only process items that were selected in the bag
-    const selectedItems = cartItems.filter(item => selectedIds.includes(item.id));
+    const selectedItems = cartItems.filter(item => selectedIds.includes(getLineItemId(item.id, item.size)));
     const selectedCount = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
     
     const [isOrderCompleted, setIsOrderCompleted] = useState(false);

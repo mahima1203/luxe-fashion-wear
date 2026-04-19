@@ -1,6 +1,6 @@
 'use client';
 
-import { useCartStore } from '@/app/store/cartStore';
+import { useCartStore, getLineItemId } from '@/app/store/cartStore';
 import FashionNavbar from '@/components/ui/fashion/FashionNavbar';
 import FashionFooter from '@/components/ui/fashion/FashionFooter';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ export default function ClientCartPage() {
     const setAllSelected = useCartStore((state) => state.setAllSelected);
     const router = useRouter();
 
-    const selectedItems = cartItems.filter(item => selectedIds.includes(item.id));
+    const selectedItems = cartItems.filter(item => selectedIds.includes(getLineItemId(item.id, item.size)));
     const subtotal = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const totalMRP = selectedItems.reduce((acc, item) => acc + (item.originalPrice * item.quantity), 0);
     const discountTotal = totalMRP - subtotal;
@@ -64,15 +64,17 @@ export default function ClientCartPage() {
                     <div className="flex flex-col lg:flex-row gap-8 items-start">
                         {/* Cart Items List */}
                         <div className="w-full lg:w-2/3 flex flex-col gap-4">
-                            {cartItems.map((item) => (
-                                <div key={item.id} className={`bg-white p-4 rounded border transition-all flex gap-4 sm:gap-6 relative group ${selectedIds.includes(item.id) ? 'border-gray-200' : 'border-gray-100 opacity-75'}`}>
+                            {cartItems.map((item) => {
+                                const lineId = getLineItemId(item.id, item.size);
+                                return (
+                                <div key={lineId} className={`bg-white p-4 rounded border transition-all flex gap-4 sm:gap-6 relative group ${selectedIds.includes(lineId) ? 'border-gray-200' : 'border-gray-100 opacity-75'}`}>
                                     {/* Selection Checkbox */}
                                     <div className="flex items-center">
                                         <input 
                                             type="checkbox" 
                                             className="w-4 h-4 rounded border-gray-300 text-[#f60046] focus:ring-[#f60046] cursor-pointer"
-                                            checked={selectedIds.includes(item.id)}
-                                            onChange={() => toggleSelect(item.id)}
+                                            checked={selectedIds.includes(lineId)}
+                                            onChange={() => toggleSelect(lineId)}
                                         />
                                     </div>
                                     <Link href={`/product/${item.id}`} className="w-24 h-32 sm:w-32 sm:h-40 bg-gray-100 rounded overflow-hidden flex-shrink-0 relative">
@@ -109,21 +111,21 @@ export default function ClientCartPage() {
                                             <div className="flex items-center border border-gray-300 rounded h-9">
                                                 <button 
                                                     className="w-8 h-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
-                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                    onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
                                                 >
                                                     <span className="text-lg leading-none mb-0.5">-</span>
                                                 </button>
                                                 <span className="w-10 text-center text-sm font-medium text-gray-900">{item.quantity}</span>
                                                 <button 
                                                     className="w-8 h-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
-                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                    onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
                                                 >
                                                     <span className="text-lg leading-none mb-0.5">+</span>
                                                 </button>
                                             </div>
                                             
                                             <button 
-                                                onClick={() => removeFromCart(item.id)}
+                                                onClick={() => removeFromCart(item.id, item.size)}
                                                 className="text-sm font-medium text-gray-500 hover:text-rose-600 transition-colors"
                                             >
                                                 Remove
@@ -147,7 +149,7 @@ export default function ClientCartPage() {
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
                                 </div>
-                            ))}
+                                )})}
                         </div>
                         
                         {/* Order Summary */}

@@ -13,22 +13,24 @@ export interface WishlistItem extends Product {
     db_id?: number; // Backend WishlistItem ID
 }
 
+export const getLineItemId = (id: number, size?: string) => `${id}-${size || 'nosize'}`;
+
 interface CartState {
     cartItems: CartItem[];
     wishlistItems: WishlistItem[];
     cartCount: number;
-    selectedIds: number[]; // Product IDs of selected items for checkout
+    selectedIds: string[]; // Line item IDs of selected items for checkout
 
     // Actions
     addToCart: (product: Product, quantity?: number, size?: string) => Promise<void>;
-    removeFromCart: (productId: number) => Promise<void>;
-    updateQuantity: (productId: number, quantity: number) => Promise<void>;
+    removeFromCart: (productId: number, size?: string) => Promise<void>;
+    updateQuantity: (productId: number, quantity: number, size?: string) => Promise<void>;
     
     addToWishlist: (product: Product) => Promise<void>;
     removeFromWishlist: (productId: number) => Promise<void>;
 
     // Selection
-    toggleSelect: (productId: number) => void;
+    toggleSelect: (lineItemId: string) => void;
     setAllSelected: (selected: boolean) => void;
     clearSelected: () => void;
 
@@ -72,10 +74,10 @@ export const useCartStore = create<CartState>()(
 
                     // Sync selectedIds (only keep those that still exist in cart)
                     const currentSelected = get().selectedIds;
-                    const validSelected = currentSelected.filter(id => cartItems.some(item => item.id === id));
+                    const validSelected = currentSelected.filter(lineId => cartItems.some(item => getLineItemId(item.id, item.size) === lineId));
                     
                     // If no one is selected, default to all (Standard expectation on refresh)
-                    const newSelected = validSelected.length > 0 ? validSelected : cartItems.map(i => i.id);
+                    const newSelected = validSelected.length > 0 ? validSelected : cartItems.map(i => getLineItemId(i.id, i.size));
 
                     set({ cartItems, wishlistItems, cartCount, selectedIds: newSelected });
                 } catch (error) {
@@ -111,9 +113,10 @@ export const useCartStore = create<CartState>()(
                         const newCount = newCartItems.reduce((acc: number, item: CartItem) => acc + item.quantity, 0);
                         
                         // Auto-select the item if it's new
-                        const newSelectedIds = state.selectedIds.includes(product.id) 
+                        const lineId = getLineItemId(product.id, size);
+                        const newSelectedIds = state.selectedIds.includes(lineId) 
                             ? state.selectedIds 
-                            : [...state.selectedIds, product.id];
+                            : [...state.selectedIds, lineId];
 
                         return { cartItems: newCartItems, cartCount: newCount, selectedIds: newSelectedIds };
                     });
@@ -122,19 +125,20 @@ export const useCartStore = create<CartState>()(
                 }
             },
 
-            removeFromCart: async (productId) => {
+            removeFromCart: async (productId, size) => {
                 try {
                     const state = get();
-                    const itemToRemove = state.cartItems.find(i => i.id === productId);
+                    const itemToRemove = state.cartItems.find(i => i.id === productId && i.size === size);
 
                     if (storeApi.hasToken() && itemToRemove?.db_id) {
                         await storeApi.removeFromCartApi(itemToRemove.db_id);
                     }
 
                     set((state) => {
-                        const newCartItems = state.cartItems.filter(item => item.id !== productId);
+                        const lineIdToRemove = getLineItemId(productId, size);
+                        const newCartItems = state.cartItems.filter(item => getLineItemId(item.id, item.size) !== lineIdToRemove);
                         const newCount = newCartItems.reduce((acc, item) => acc + item.quantity, 0);
-                        const newSelectedIds = state.selectedIds.filter(id => id !== productId);
+                        const newSelectedIds = state.selectedIds.filter(id => id !== lineIdToRemove);
                         return { cartItems: newCartItems, cartCount: newCount, selectedIds: newSelectedIds };
                     });
                 } catch (error) {
@@ -142,15 +146,16 @@ export const useCartStore = create<CartState>()(
                 }
             },
 
-            updateQuantity: async (productId, quantity) => {
+            updateQuantity: async (productId, quantity, size) => {
                 if (quantity <= 0) {
-                    await get().removeFromCart(productId);
+                    await get().removeFromCart(productId, size);
                     return;
                 }
 
                 try {
                     const state = get();
-                    const itemToUpdate = state.cartItems.find(i => i.id === productId);
+                    const lineIdToUpdate = getLineItemId(productId, size);
+                    const itemToUpdate = state.cartItems.find(i => getLineItemId(i.id, i.size) === lineIdToUpdate);
 
                     if (storeApi.hasToken() && itemToUpdate?.db_id) {
                         await storeApi.updateCartItemApi(itemToUpdate.db_id, quantity);
@@ -158,7 +163,7 @@ export const useCartStore = create<CartState>()(
 
                     set((state) => {
                         const newCartItems = state.cartItems.map(item =>
-                            item.id === productId ? { ...item, quantity } : item
+                            getLineItemId(item.id, item.size) === lineIdToUpdate ? { ...item, quantity } : item
                         );
                         const newCount = newCartItems.reduce((acc, item) => acc + item.quantity, 0);
                         return { cartItems: newCartItems, cartCount: newCount };
@@ -205,18 +210,18 @@ export const useCartStore = create<CartState>()(
                 }
             },
 
-            toggleSelect: (productId) => {
+            toggleSelect: (lineItemId) => {
                 set((state) => ({
-                    selectedIds: state.selectedIds.includes(productId)
-                        ? state.selectedIds.filter(id => id !== productId)
-                        : [...state.selectedIds, productId]
+                    selectedIds: state.selectedIds.includes(lineItemId)
+                        ? state.selectedIds.filter(id => id !== lineItemId)
+                        : [...state.selectedIds, lineItemId]
                 }));
             },
 
             setAllSelected: (selected) => {
                 const state = get();
                 set({
-                    selectedIds: selected ? state.cartItems.map(item => item.id) : []
+                    selectedIds: selected ? state.cartItems.map(item => getLineItemId(item.id, item.size)) : []
                 });
             },
 
