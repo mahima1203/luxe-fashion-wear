@@ -50,20 +50,28 @@ export default function OrdersTab() {
                                     <p className="text-sm font-medium text-gray-900 mt-0.5">#{order.id}</p>
                                 </div>
                             </div>
-                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                                order.status === 'delivered' ? 'bg-green-100 text-green-800 border border-green-200' :
-                                order.status === 'cancelled' ? 'bg-red-100 text-red-800 border border-red-200' :
-                                order.status === 'paid' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                                'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                            }`}>
-                                {order.status}
-                            </span>
+                            <div className="flex items-center gap-4">
+                                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                                    order.status === 'delivered' ? 'bg-green-100 text-green-800 border border-green-200' :
+                                    order.status === 'cancelled' ? 'bg-red-100 text-red-800 border border-red-200' :
+                                    order.status === 'paid' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                                    'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                                }`}>
+                                    {order.status}
+                                </span>
+                                <Link 
+                                    href={`/order-tracking/${order.id}`} 
+                                    className="text-sm font-semibold text-[#f60046] hover:underline bg-rose-50 px-3 py-1 rounded border border-rose-100 transition-colors hover:bg-rose-100"
+                                >
+                                    Track Order
+                                </Link>
+                            </div>
                         </div>
                         
                         <div className="p-6 divide-y divide-gray-100">
                             {order.items?.map((item, index) => (
                                 <div key={index} className="flex gap-4 sm:gap-6 items-center py-4 first:pt-0 last:pb-0">
-                                    <div className="w-20 h-24 bg-gray-100 rounded overflow-hidden flex-shrink-0 relative border border-gray-200">
+                                    <Link href={`/product/${item.product_id}`} className="w-20 h-24 bg-gray-100 rounded overflow-hidden flex-shrink-0 relative border border-gray-200 block transition-transform hover:scale-105">
                                         {item.product_image.startsWith('http') ? (
                                             <img src={item.product_image} alt={item.product_name} className="object-cover w-full h-full" />
                                         ) : (
@@ -76,12 +84,17 @@ export default function OrdersTab() {
                                                 className="object-cover w-full h-full" 
                                             />
                                         )}
-                                    </div>
+                                    </Link>
                                     <div className="flex-1">
-                                        <h4 className="text-sm font-bold text-gray-900">{item.product_brand}</h4>
-                                        <p className="text-sm text-gray-600 mt-1">{item.product_name}</p>
+                                        <Link href={`/product/${item.product_id}`} className="hover:underline block">
+                                            <h4 className="text-sm font-bold text-gray-900">{item.product_brand}</h4>
+                                            <p className="text-sm text-gray-600 mt-1">{item.product_name}</p>
+                                        </Link>
                                         <div className="flex items-center gap-4 mt-2">
-                                            <p className="text-xs text-gray-500 font-medium">Qty: {item.quantity}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs text-gray-500 font-medium bg-gray-100 px-1.5 py-0.5 rounded">Qty: {item.quantity}</p>
+                                                {item.size && <p className="text-xs text-gray-500 font-medium bg-gray-100 px-1.5 py-0.5 rounded">Size: {item.size}</p>}
+                                            </div>
                                             <p className="text-xs font-bold text-gray-900">₹{item.price.toLocaleString()}</p>
                                         </div>
                                     </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 import { fetchAddresses } from '@/api/addresses';
 import { createOrderFromCart } from '@/api/orders';
@@ -52,6 +53,7 @@ export default function ClientCheckoutPage() {
     }, [cartCount, selectedIds, router, isOrderCompleted]);
 
     const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+    const [isAddressListExpanded, setIsAddressListExpanded] = useState(false);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
@@ -73,6 +75,7 @@ export default function ClientCheckoutPage() {
         onSuccess: (newAddr) => {
             queryClient.invalidateQueries({ queryKey: ['addresses'] });
             setSelectedAddressId(newAddr.id);
+            setIsAddressListExpanded(false);
             setIsAddressModalOpen(false);
             toast.success('Address added and selected!');
         },
@@ -224,32 +227,47 @@ export default function ClientCheckoutPage() {
                                     <button onClick={() => setIsAddressModalOpen(true)} className="bg-gray-900 text-white px-6 py-2 rounded-lg font-medium shadow-md">Add an Address</button>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {addresses.map((address) => (
-                                        <div 
-                                            key={address.id} 
-                                            onClick={() => setSelectedAddressId(address.id)}
-                                            className={`cursor-pointer rounded-lg p-4 border-2 transition-all relative ${
-                                                selectedAddressId === address.id ? 'border-[#f60046] bg-rose-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                        >
-                                            {selectedAddressId === address.id && (
-                                                <div className="absolute top-4 right-4 text-[#f60046]">
-                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {addresses
+                                            .filter(address => isAddressListExpanded || address.id === selectedAddressId)
+                                            .map((address) => (
+                                            <div 
+                                                key={address.id} 
+                                                onClick={() => {
+                                                    setSelectedAddressId(address.id);
+                                                    if (isAddressListExpanded) setIsAddressListExpanded(false);
+                                                }}
+                                                className={`cursor-pointer rounded-lg p-4 border-2 transition-all relative ${
+                                                    selectedAddressId === address.id ? 'border-[#f60046] bg-rose-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                            >
+                                                {selectedAddressId === address.id && (
+                                                    <div className="absolute top-4 right-4 text-[#f60046]">
+                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <h3 className="font-bold text-gray-900">{address.full_name}</h3>
+                                                    <span className="bg-gray-200 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{address.type}</span>
                                                 </div>
-                                            )}
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <h3 className="font-bold text-gray-900">{address.full_name}</h3>
-                                                <span className="bg-gray-200 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{address.type}</span>
+                                                <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                                                    {address.line1}<br />
+                                                    {address.line2 && <>{address.line2}<br /></>}
+                                                    {address.city}, {address.state} {address.pincode}
+                                                </p>
+                                                <p className="text-sm font-medium text-gray-900">Phone: {address.phone}</p>
                                             </div>
-                                            <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                                                {address.line1}<br />
-                                                {address.line2 && <>{address.line2}<br /></>}
-                                                {address.city}, {address.state} {address.pincode}
-                                            </p>
-                                            <p className="text-sm font-medium text-gray-900">Phone: {address.phone}</p>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
+                                    {!isAddressListExpanded && addresses.length > 1 && (
+                                        <button 
+                                            onClick={() => setIsAddressListExpanded(true)}
+                                            className="text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-300 px-4 py-2 rounded shadow-sm bg-white"
+                                        >
+                                            Change Address
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -266,17 +284,22 @@ export default function ClientCheckoutPage() {
                             <div className="max-h-60 overflow-y-auto pr-2 mb-6 space-y-4">
                                 {selectedItems.map((item) => (
                                     <div key={item.id} className="flex gap-4">
-                                        <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 relative">
+                                        <Link href={`/product/${item.id}`} className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 relative block">
                                             <img 
                                                 src={item.image.startsWith('http') ? item.image : `https://res.cloudinary.com/demo/image/upload/${item.image}`} 
                                                 alt={item.name} 
                                                 className="w-full h-full object-cover rounded" 
                                             />
-                                        </div>
+                                        </Link>
                                         <div className="flex-1">
-                                            <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{item.brand}</h4>
-                                            <p className="text-xs text-gray-500 line-clamp-1">{item.name}</p>
-                                            <p className="text-xs font-semibold mt-1 text-gray-700">Qty: {item.quantity}</p>
+                                            <Link href={`/product/${item.id}`} className="hover:underline block">
+                                                <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{item.brand}</h4>
+                                                <p className="text-xs text-gray-500 line-clamp-1">{item.name}</p>
+                                            </Link>
+                                            <div className="flex items-center gap-3 mt-1.5">
+                                                <p className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Qty: {item.quantity}</p>
+                                                {item.size && <p className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Size: {item.size}</p>}
+                                            </div>
                                         </div>
                                         <div className="text-sm font-bold text-gray-900">
                                             ₹{(item.price * item.quantity).toLocaleString()}

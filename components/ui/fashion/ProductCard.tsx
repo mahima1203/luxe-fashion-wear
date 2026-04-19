@@ -26,7 +26,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     const isWishlisted = wishlistItems.some(item => item.id === product.id);
 
     const handleProtectedAction = (action: string, callback?: () => void) => {
-        if (!hasToken()) {
+        if (action === 'wishlist' && !hasToken()) {
             router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
             return;
         }
@@ -116,14 +116,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleProtectedAction('cart', () => {
-                                addToCart(product);
-                                toast.success('1 item added to Bag');
-                            });
+                            router.push(`/product/${product.id}`);
                         }}
                         className="w-full bg-gray-900 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-colors duration-300 pointer-events-auto shadow-md"
                     >
-                        Add to Bag
+                        Select Size
                     </button>
                 </div>
             </div>

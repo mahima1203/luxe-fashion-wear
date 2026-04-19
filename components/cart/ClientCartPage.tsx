@@ -75,7 +75,7 @@ export default function ClientCartPage() {
                                             onChange={() => toggleSelect(item.id)}
                                         />
                                     </div>
-                                    <Link href={`/products/${item.id}`} className="w-24 h-32 sm:w-32 sm:h-40 bg-gray-100 rounded overflow-hidden flex-shrink-0 relative">
+                                    <Link href={`/product/${item.id}`} className="w-24 h-32 sm:w-32 sm:h-40 bg-gray-100 rounded overflow-hidden flex-shrink-0 relative">
                                         <CldImage 
                                             src={item.image} 
                                             alt={item.name} 
@@ -89,8 +89,10 @@ export default function ClientCartPage() {
                                     <div className="flex-1 flex flex-col">
                                         <div className="flex justify-between items-start pr-6 sm:pr-0">
                                             <div>
-                                                <h3 className="text-sm font-bold text-gray-900">{item.brand}</h3>
-                                                <p className="text-sm text-gray-600 mt-1 line-clamp-2 pr-4">{item.name}</p>
+                                                <Link href={`/product/${item.id}`} className="hover:underline">
+                                                    <h3 className="text-sm font-bold text-gray-900">{item.brand}</h3>
+                                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2 pr-4">{item.name}</p>
+                                                </Link>
                                             </div>
                                             <div className="text-right hidden sm:block">
                                                 <div className="text-base font-bold text-gray-900">₹{(item.price * item.quantity).toLocaleString()}</div>
@@ -100,7 +102,7 @@ export default function ClientCartPage() {
                                             </div>
                                         </div>
                                         
-                                        <div className="text-sm text-gray-500 mt-2 mb-auto">Size: <span className="text-gray-900 font-medium">{item.size || 'M'}</span></div>
+                                        {item.size && <div className="text-sm text-gray-500 mt-2 mb-auto">Size: <span className="text-gray-900 font-medium">{item.size}</span></div>}
                                         
                                         <div className="flex items-center gap-4 mt-4">
                                             {/* Quantity Control */}

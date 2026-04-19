@@ -97,8 +97,10 @@ export default function ClientWishlistPage() {
                                 </Link>
                                 
                                 <div className="p-4 flex flex-col flex-grow">
-                                    <h3 className="text-sm font-bold text-gray-900 truncate mb-1">{product.brand}</h3>
-                                    <p className="text-xs text-gray-500 line-clamp-2 mb-2 flex-grow">{product.name}</p>
+                                    <Link href={`/product/${product.id}`} className="hover:underline flex flex-col flex-grow">
+                                        <h3 className="text-sm font-bold text-gray-900 truncate mb-1">{product.brand}</h3>
+                                        <p className="text-xs text-gray-500 line-clamp-2 mb-2 flex-grow">{product.name}</p>
+                                    </Link>
                                     
                                     <div className="flex items-center gap-2 mb-4">
                                         <span className="text-sm font-bold text-gray-900">₹{product.price.toLocaleString()}</span>

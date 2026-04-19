@@ -65,6 +65,21 @@ function LoginContent() {
             // Store JWT securely in a cookie
             document.cookie = `luxe_token=${data.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
 
+            // Migrate local cart to backend if items exist
+            const localCartItems = useCartStore.getState().cartItems;
+            if (localCartItems.length > 0) {
+                try {
+                    const storeApi = await import('@/api/storeApi');
+                    for (const item of localCartItems) {
+                        if (!item.db_id) {
+                            await storeApi.addToCartApi(item.id, item.quantity, item.size);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to migrate some local cart items to backend:", err);
+                }
+            }
+
             // Sync the true cart from the backend before redirecting
             await useCartStore.getState().syncFromApi();
 

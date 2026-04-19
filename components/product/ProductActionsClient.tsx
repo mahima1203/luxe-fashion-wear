@@ -22,7 +22,7 @@ export default function ProductActionsClient({ product, children }: { product: P
         : false;
 
     const handleProtectedAction = (actionName: string) => {
-        if (!hasToken()) {
+        if (actionName.includes('Wishlist') && !hasToken()) {
             // Not logged in -> send to login page, remember where we came from
             router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
             return;

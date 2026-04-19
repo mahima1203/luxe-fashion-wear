@@ -181,7 +181,7 @@ export default function FashionNavbar() {
     };
 
     const handleProtectedAction = (action: string) => {
-        if (!isLoggedIn) {
+        if (action === 'wishlist' && !isLoggedIn) {
             router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
             return;
         }
@@ -395,7 +395,7 @@ export default function FashionNavbar() {
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                 </svg>
-                                {isLoggedIn && cartCount > 0 && (
+                                {cartCount > 0 && (
                                     <span className="absolute -top-1 -right-1.5 bg-rose-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-in zoom-in">
                                         {cartCount}
                                     </span>
