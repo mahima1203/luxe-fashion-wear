@@ -30,7 +30,7 @@ export default function ProductListingPage() {
     });
 
     const products = data ? data.pages.flatMap((page: any) => page.products as Product[]) : [];
-    
+
     // Filter out unique products manually in case of duplicate keys in Strict Mode
     const uniqueProducts = Array.from(new Map(products.map((p: Product) => [p.id, p])).values()) as Product[];
 

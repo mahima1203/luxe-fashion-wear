@@ -19,8 +19,14 @@ export default function OrderTrackingClient() {
 
     const stages = ['pending', 'paid', 'shipped', 'delivered'];
     
-    let currentStageIndex = stages.indexOf(order.status);
-    if (currentStageIndex === -1 && order.status === 'confirmed') currentStageIndex = 1;
+    let currentStageIndex = stages.indexOf(order.status.toLowerCase());
+    if (currentStageIndex === -1 && order.status.toLowerCase() === 'confirmed') currentStageIndex = 1;
+
+    // Calculate percentage for exact positioning
+    const getPercentage = (index: number) => {
+        if (index < 0) return 0;
+        return (index / (stages.length - 1)) * 100;
+    };
 
     return (
         <div className="space-y-8">
@@ -34,24 +40,63 @@ export default function OrderTrackingClient() {
                 </div>
                 
                 {/* Timeline */}
-                <div className="relative mt-10 mb-10">
-                    <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-100 relative z-0">
-                        <div style={{ width: `${Math.max(0, (currentStageIndex / (stages.length - 1)) * 100)}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#f60046] transition-all duration-500 relative z-10 w-0"></div>
+                <div className="relative mt-12 mb-16 mx-4">
+                    {/* Background Bar */}
+                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-gray-100 -translate-y-1/2 rounded-full z-0"></div>
+                    
+                    {/* Pink Progress Bar */}
+                    <div 
+                        className="absolute top-1/2 left-0 h-1.5 bg-[#f60046] -translate-y-1/2 rounded-full transition-all duration-700 ease-out z-10"
+                        style={{ width: `${getPercentage(currentStageIndex)}%` }}
+                    ></div>
+
+                    {/* Stage Dots and Labels */}
+                    <div className="relative flex justify-between w-full h-0">
+                        {stages.map((stage, idx) => {
+                            const isCompleted = idx <= currentStageIndex;
+                            const isCurrent = idx === currentStageIndex;
+                            
+                            return (
+                                <div 
+                                    key={stage} 
+                                    className="absolute top-0 flex flex-col items-center -translate-y-1/2"
+                                    style={{ left: `${getPercentage(idx)}%` }}
+                                >
+                                    {/* Dot */}
+                                    <div className={`
+                                        w-5 h-5 rounded-full border-4 transition-all duration-300 z-20 flex items-center justify-center
+                                        ${isCompleted ? 'bg-[#f60046] border-white shadow-sm scale-110' : 'bg-white border-gray-200'}
+                                    `}>
+                                        {isCompleted && (
+                                            <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Label */}
+                                    <div className={`
+                                        absolute top-8 whitespace-nowrap text-center transition-colors duration-300
+                                        ${isCompleted ? 'text-[#f60046] font-bold' : 'text-gray-400 font-medium'}
+                                        ${isCurrent ? 'scale-110' : 'text-[10px]'}
+                                        text-[11px]
+                                    `}>
+                                        <span className="capitalize">{stage}</span>
+                                        {isCurrent && <span className="block text-[8px] opacity-70 tracking-tighter uppercase">(Current)</span>}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                    {/* Dots and Labels */}
-                    <div className="flex justify-between text-xs font-semibold text-gray-400 -mt-7">
-                        {stages.map((stage, idx) => (
-                            <div key={stage} className={`flex flex-col items-center flex-1 ${idx <= currentStageIndex ? 'text-[#f60046]' : ''}`}>
-                                <div className={`w-4 h-4 rounded-full mb-1 z-20 ${idx <= currentStageIndex ? 'bg-[#f60046]' : 'bg-gray-200'}`}></div>
-                                <span className="capitalize mt-2">{stage}</span>
-                            </div>
-                        ))}
-                    </div>
+                    
                     {order.status === 'cancelled' && (
-                        <div className="text-center text-rose-600 font-bold mt-4 uppercase tracking-widest pt-4">This order was cancelled.</div>
+                        <div className="absolute -bottom-12 left-0 w-full text-center text-rose-600 font-bold uppercase tracking-widest text-[10px]">
+                            This order was cancelled.
+                        </div>
                     )}
                 </div>
             </div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
